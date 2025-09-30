@@ -1,0 +1,1711 @@
+{
+    "name": "Shorts",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 8,
+                            "triggerAtMinute": 54
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "ee9b4400-c485-4df8-ba6a-da253e2930d5",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=0"
+                },
+                "filtersUI": {
+                    "values": [
+                        {
+                            "lookupColumn": "Production_Status",
+                            "lookupValue": "for production"
+                        }
+                    ]
+                },
+                "options": {
+                    "returnFirstMatch": true
+                }
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                224,
+                0
+            ],
+            "id": "87ad7a8f-a811-4aee-bd50-0d25cb3a0675",
+            "name": "Get row(s) in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "content": "Step 1: Get Longform",
+                "width": 904,
+                "color": 5
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "typeVersion": 1,
+            "position": [
+                -480,
+                -16
+            ],
+            "id": "ff9df800-b225-4893-9453-a4e3f7d0935c",
+            "name": "Sticky Note1"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.klap.app/v2/tasks/video-to-shorts",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"source_video_url\": \"{{ $json['Longform URL'] }}\",\n\n  \"language\": \"en\",\n  \"target_clip_count\": 15,\n  \"max_clip_count\": 15,\n\n  \"editing_options\": {\n    \"captions\": true,\n    \"reframe\": true,\n    \"emojis\": false,\n    \"remove_silences\": true,\n    \"intro_title\": false\n  },\n\n  \"dimensions\": {\n    \"width\": 1080,\n    \"height\": 1920\n  },\n  \"min_duration\": 25,\n  \"max_duration\": 60,\n  \"target_duration\": 40\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                -16,
+                224
+            ],
+            "id": "d5338842-0e30-4a7b-9e30-2835361f9d08",
+            "name": "Analyze Longform",
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_KLAP_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "amount": 10,
+                "unit": "minutes"
+            },
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                208,
+                224
+            ],
+            "id": "e6388fc9-1cb0-4826-856c-1f9084534633",
+            "name": "Wait",
+            "webhookId": "WEBHOOK_ID_PLACEHOLDER"
+        },
+        {
+            "parameters": {
+                "url": "=https://api.klap.app/v2/tasks/{{ $json.id }}",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                464,
+                224
+            ],
+            "id": "d0819662-8fc2-4d59-912f-a88f9ab591eb",
+            "name": "Get Status",
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_KLAP_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "ce2cd58f-2ca3-4689-93f7-b4555432adc5",
+                            "leftValue": "={{ $json.status }}",
+                            "rightValue": "ready",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals",
+                                "name": "filter.operator.equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                688,
+                224
+            ],
+            "id": "acf769c0-2ad1-40b1-a922-7f321b99cdcf",
+            "name": "Ready"
+        },
+        {
+            "parameters": {
+                "url": "=https://api.klap.app/v2/projects/{{ $json.output_id }}",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1024,
+                224
+            ],
+            "id": "07c639ec-7032-4182-8ab3-baeac03c2b1f",
+            "name": "Get Shorts Details",
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_KLAP_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://api.klap.app/v2/projects/{{ $json.folder_id }}/{{ $json.id }}/exports",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"preset_id\":\"123\"\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                0,
+                512
+            ],
+            "id": "e135cc99-5f59-44b5-bbb7-ade0fa390d17",
+            "name": "Export Shorts",
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_KLAP_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "amount": 10,
+                "unit": "minutes"
+            },
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                208,
+                512
+            ],
+            "id": "a10440f2-7384-4e8e-ab0e-f5152d1d383e",
+            "name": "Wait1",
+            "webhookId": "WEBHOOK_ID_PLACEHOLDER"
+        },
+        {
+            "parameters": {
+                "url": "=https://api.klap.app/v2/projects/{{ $json.folder_id }}/{{ $json.id }}/exports/{{ $json.id }}",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                464,
+                512
+            ],
+            "id": "b23777e1-0a4f-4d77-b9af-484322fdeed9",
+            "name": "Get Shorts",
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_KLAP_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "da052472-a63c-4450-9a40-85dae25d9d17",
+                            "leftValue": "={{ $json.status }}",
+                            "rightValue": "ready",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals",
+                                "name": "filter.operator.equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                688,
+                512
+            ],
+            "id": "da7a8298-3f4e-4ca1-98f5-4688f08779a8",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "Production_Status": "Done",
+                        "id": "={{ $('Get row(s) in sheet').first().json.id }}"
+                    },
+                    "matchingColumns": [
+                        "id"
+                    ],
+                    "schema": [
+                        {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Longform URL",
+                            "displayName": "Longform URL",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Production_Status",
+                            "displayName": "Production_Status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                944,
+                480
+            ],
+            "id": "f29a7498-9105-4a2c-a3b9-652273e12791",
+            "name": "Update longform Status",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "content": "Step 2: Analyze Longform",
+                "height": 176,
+                "width": 1712,
+                "color": 2
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "typeVersion": 1,
+            "position": [
+                -464,
+                192
+            ],
+            "id": "c91efc5f-c812-4a9e-a4aa-bbce1412e9dc",
+            "name": "Sticky Note2"
+        },
+        {
+            "parameters": {
+                "content": "Step 3: Produce Shorts",
+                "height": 192,
+                "width": 1712
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "typeVersion": 1,
+            "position": [
+                -464,
+                464
+            ],
+            "id": "4be39db9-ed96-48ff-a85a-310cb447880a",
+            "name": "Sticky Note3"
+        },
+        {
+            "parameters": {
+                "content": "Step 4: Generating Youtube Titles and descriptions",
+                "height": 192,
+                "width": 1948,
+                "color": 4
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "typeVersion": 1,
+            "position": [
+                -480,
+                752
+            ],
+            "id": "0271dde6-62e3-45cf-848b-6cebdf552113",
+            "name": "Sticky Note4"
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 734120859,
+                    "mode": "list",
+                    "cachedResultName": "Sheet2",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=734120859"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "shortform_links": "={{ $('Get Shorts').item.json.src_url }}",
+                        "tiktok_caption": "={{ $('Get Shorts Details').item.json.publication_captions.tiktok }}",
+                        "linkedin_caption": "={{ $('Get Shorts Details').item.json.publication_captions.linkedin }}",
+                        "youtube_caption": "={{ $('Get Shorts Details').item.json.publication_captions.youtube }}",
+                        "instagram_caption": "={{ $('Get Shorts Details').item.json.publication_captions.instagram }}",
+                        "transcript": "={{ $('Get Shorts Details').item.json.transcript_text }}",
+                        "id": "==ROW()-1"
+                    },
+                    "matchingColumns": [
+                        "id"
+                    ],
+                    "schema": [
+                        {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "shortform_links",
+                            "displayName": "shortform_links",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "tiktok_caption",
+                            "displayName": "tiktok_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "instagram_caption",
+                            "displayName": "instagram_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "youtube_caption",
+                            "displayName": "youtube_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "linkedin_caption",
+                            "displayName": "linkedin_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "transcript",
+                            "displayName": "transcript",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "titles",
+                            "displayName": "titles",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "descriptions",
+                            "displayName": "descriptions",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "uploadId",
+                            "displayName": "uploadId",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "posting_status",
+                            "displayName": "posting_status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                32,
+                768
+            ],
+            "id": "187a1f9d-a01f-4479-878c-83982e452e72",
+            "name": "Log Shorts",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.transcript }}",
+                "options": {
+                    "systemMessage": "=You are a shorts title generator for interview clips for Silicon Valley Girl Channel. \nGoal: produce high-converting titles (5–55 chars when possible; one idea per title; no clickbait lies) that make scrollers stop. \n\nINSTRUCTIONS:\nUse the transcript below to:\n- Analyze what the speaker is talking about\n- Detect their authority/status\n- Identify the key tension or insight\n- Write exactly ONE final YouTube Shorts title that follows the rules below.\nDo not output multiple options. Do not output previews. Only return the final title as plain text.\n.\nMix across the styles mentioned (e.g., 2–3 in Diary of a CEO style, 2–3 in My First Million outcome/number style, 2–3 in authority/contrarian/negative framing, 2–3 in trend+authority POV).\nThis way I’ll get a diverse set of hooks to test.\nProcess: Generate diverse titles (min. 3 styles). Do not output a single-title preview.\nVariety: Avoid repeating molds across recent transcripts; max one “Forget X / Do Y” per batch.\n\n\n\nStyle Diversity Rule\nDo not repeat the same phrasing pattern across many titles.\nEach title must feel varied: include at least 3 different framing styles (Diary of a CEO style, My First Million/outcome-number style, authority/contrarian/negative style, trend+authority POV, etc.).\nPhrasing patterns like “Forget X, Do This Instead” or “Why I’d Never Do X” may only appear once per batch (maximum twice across 50 transcripts).\nAcross multiple transcripts, keep the overall output fresh — if one transcript already used a hook like “The Real Reason X Fails”, avoid repeating that exact mold in the next 3–5 transcripts.\nVariety is more important than uniformity: experiment with structure, length, and emotional framing so the channel doesn’t look copy-pasted.\nWhat makes an interview-short title go viral\nCuriosity + tension beat everything\n Use titles that open a loop without spoiling it. The strongest hook styles are Curiosity Spike, Controversial, and Negative/pain-point framings. Stack them when you can.\n Examples of stackable frames from the data: “Authority + Controversial + Specific numbers + Curiosity gap.”\n\n\nBorrow authority (name, status, or quote) — even if the guest isn’t “famous”\n “Authority borrowing” (referencing well-known figures or positioning the speaker as one) is a core ideation lever; challenge/validate popular advice for extra pull.\n If a big name is involved, use it; if not, title the credential (“Harvard clinician…”, “OpenAI researcher…”) to signal expertise.\n\n\nPick topics with proven demand (market-cap thinking)\n Titles that include high-interest keywords (e.g., “Lamborghini” > “Ferrari”) ride bigger demand curves. Choose the higher-cap word when there’s a choice.\n Find outlier videos (5–10× a channel’s subs), study their titles, then adapt “with taste” to your clip.\n\n\nClarity over cleverness; keep reading level low\n Scripts that a 6th-grader can parse win; that applies to titles too. Short, concrete words, one clear idea.\n Marina’s tips reinforce: be concise; nail the first seconds (title should echo that promise).\n\n\nPromise a “so-what” (stakes or payoff)\n Casey’s test: why should we care? Titles that imply a result, risk, or lesson travel further.\n\n\nLean into core emotions the best thumbnails use\n Even though this book is about thumbnails, the same emotional categories convert in titles: Mystery, Comparison, Transformation, Wealth/price. Pair your title with one of these emotions for congruent click intent.\n\n\nIterate with data & audience input\n Poll title options with your audience before posting (works cleverly for Shorts too), just like thumb/title polling.\n You can also cycle titles post-publish; think of it like macro/micro tests for thumbnails, but on copy. (The macro→micro testing concept comes from their thumbnail process.)\n\n\nTrend + Authority = growth\n Mix a trending topic with your expert’s take in the title (“Sam Altman on the real risk,” “Doctor’s take on Ozempic myths”). It’s the “Trend + Authority” cross-pollination pattern.\n\n\nQuantity breeds clarity\n More attempts → better hit rate; keep experimenting and tracking what formats work (Marina’s consistency/experimentation points).\n\n\n\nProven title patterns for interview clips (fill-in templates)\nUse these as generation “molds” for your expert clips:\nContrarian take:\n “[Expert/Role] Says We’ve Been Wrong About [Topic]”\n (Controversial + Authority + Curiosity)\n\n\nThe real reason:\n “The Real Reason [X] Fails (According to [Expert])”\n (Stakes + Authority + Curiosity)\n\n\nSpecific number claim:\n “[Expert]’s 3 Rules To Fix [Problem] Fast”\n (Specificity + Payoff)\n\n\nComparison / vs.:\n “[Old Way] vs [New Way]: [Expert] Picks a Winner”\n (Comparison category)\n\n\nTransformation/outcome:\n “How [Expert] Would Turn [Situation] Into [Outcome] in 30 Days”\n (Transformation + Timebox)\n\n\nPrice/wealth angle:\n “Why [Expert] Would Never Pay $[X] For [Thing]”\n (Wealth/price curiosity)\n\n\nMyth bust:\n “[Myth] Is A Lie — Here’s The Data, Says [Expert]”\n (Negative + Authority + Curiosity)\n\n\nShort quote (raw):\n “‘[Spicy 3–5-word quote]’ — [Expert on Topic]”\n (Authenticity; use clean, readable language)\n\n\nTrend + POV:\n “[Expert] On [Trending Topic]: ‘Here’s What Everyone Missed’”\n (Trend + Authority cross-pollination)\n\n\nRisk/stakes:\n “[Expert]: Do This Now Or Regret It In 5 Years”\n (Negative + Stakes) \n\nThe “Diary of a CEO” Title Rule\n1. Short, declarative, and dramatic\nTitles rarely exceed 6–8 words.\nThey are statements or stark claims, not questions (exceptions: rhetorical “Is this…”).\nExamples:\n\n\n“THIS DRUG IS QUIETLY KILLING YOU”\n“WE ARE FAILING AS A SOCIETY”\n\n\n🔑 Rule: Keep titles short, snappy, and assertive.\n2. High-stakes emotional framing\nLanguage leans into danger, collapse, failure, death, illness, regret.\nOften taps into fear or existential stakes.\nExamples:\n\n\n“THE NEXT 15 YEARS WILL BE HELL”\n“SEEING TRUE REALITY WILL KILL US”\n\n\n🔑 Rule: Frame insights as urgent, life-or-death, or society-shaking.\n3. Authority or universality\nMany titles speak as universal truths, not just expert opinions.\nSometimes add authority weight (billionaire, doctor, scientist).\nExamples:\n\n\n“BILLIONAIRE REVEALS ADVICE YOU NEED TO HEAR”\n“THIS IS WHAT MARIJUANA DOES TO YOUR BRAIN”\n\n\n🔑 Rule: If using expert, highlight role/title; if not, phrase it as a law of nature/society.\n4. Curiosity by incompleteness or absolutes\nSome titles cut off (“…”) but that actually teases the rest.\nAbsolutes: “No one tells you this,” “This is the only…”\nExamples:\n\n\n“NO ONE TELLS YOU THIS ABOUT DAYCARE”\n“THE ONLY BUSINESS THAT WORKS”\n\n\n🔑 Rule: Use “No one tells you…” / “This is the only…” / ellipsis endings for curiosity.\n5. Negative > Positive framing\nMost titles frame what’s wrong, not what’s right.\nCompare: “YOU NEED TO AVOID…” vs “How to succeed…”\nExamples:\n\n\n“YOU NEED TO AVOID DIVORCE AT ALL COSTS”\n\n\n“THE HIDDEN DANGERS OF LIVING NEAR A GOLF…”\n\n\n🔑 Rule: Prefer negative danger/failure framing over positive benefit.\n6. Simple, everyday language\nNo jargon, no complexity — words you’d use in conversation.\n“Drink more”, “This rule”, “These plants”, “Rich”, “Jobs”.\nWorks at 6th-grade readability level.\n\n\n🔑 Rule: Write for a 12-year-old, not an expert.\nDIARY OF A CEO TITLE RULE:\nWhen writing titles, also generate a set in the style of \"The Diary of a CEO.\" \nThat means:\n- Use short, declarative statements (max 6–8 words).\n- Frame the idea as urgent, dramatic, or dangerous. \n- Prefer negative framing (collapse, danger, illness, failure) over positive. \n- Use “No one tells you this…”, “This is the only…”, or ellipsis (…) for curiosity. \n- Borrow authority (Doctor, Billionaire, Scientist) OR state as universal truth. \n- Keep wording simple, everyday, and conversational (6th-grade readability). \n- Avoid hedging. Sound absolute and certain.\n\n\n\nWhat distinguishes the higher-view titles (on this page)\n1) Big, hard numbers upfront\n$ amounts in millions/billions, or massive outcomes: “$1 BILLION company,” “$3 Billion business,” “$275 BILLION empire.”\nPer-year metrics (“$160M/Year”), or named rounds (“RAISES $145 Million”).\n Why it wins: concrete scale = instant curiosity + credibility.\n2) Famous names & institutions\n“Elon Musk,” “SpaceX,” “Warren Buffett,” “Moonbug” → immediate recognition.\n Why it wins: brand gravity increases CTR even for non-fans.\n3) Outcome-first case-study framing\n“How X did Y” / “This guy built…” / “This 37-year-old bootstrapped…”\n Why it wins: clear payoff; you know exactly what you’ll learn.\n4) Clear, active language; short and scannable\nActive verbs: “built,” “turned,” “transports,” “raises,” “bootstrapped.”\nMinimal fluff; no quotes, no hedging.\n\n\n5) ‘Unexpected source’ twist\n“…from Facebook…”, “from dinner…”, “from swim lessons” (even when these specific ones under-performed, the format is a common hit driver when the scale is huge).\n Why it wins: novelty—getting rich from non-obvious sources.\n6) Freshness/zeitgeist topics\nAI, SpaceX, Buffett (enduring), Moonbug (media M&A)—all feel current/relevant.\n\n\n\nWhat the lower-view titles do differently\n1) Vague or process-first, not outcome-first\n“Are the Haters Right…”, “Why this doctor thinks…”, “He became a billionaire after 10,000 hours of work.”\nThese imply discussion/philosophy vs. a concrete business result.\n2) Weak/no numbers\nOr numbers that aren’t tied to results (e.g., “10,000 hours” without outcome scale, “$150M paid by McKinsey” without a personal/business payoff).\n3) Trend topics with low novelty\n“OpenAI hits $10B in revenue” (generic news headline).\nFeels like a repost of public news; no unique angle (“how it makes money,” “who profits,” etc.).\n4) Health/consumer angles\nSkin care, weight loss, scam alerts—these can do well on other channels, but MFM’s audience clearly clicks harder on business scale and famous-entity case studies.\n5) Long or hedged phrasing\nQuestions, indirect setups, quoted lines, or passive language → less punchy.\n\n\nYou final output should be one best title. Nothing else.\n\n\n"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 2,
+            "position": [
+                224,
+                768
+            ],
+            "id": "ad2ede75-888a-4448-aa9d-7a36e87011e2",
+            "name": "AI Agent"
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "value": "gpt-4.1-mini",
+                    "mode": "list",
+                    "cachedResultName": "gpt-4.1-mini"
+                },
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                176,
+                960
+            ],
+            "id": "90fad772-4931-4322-b36e-7ee4d994a2ef",
+            "name": "OpenAI Chat Model",
+            "credentials": {
+                "openAiApi": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_OPENAI_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.transcript }}",
+                "options": {
+                    "systemMessage": "=You are a YouTube description copywriter for a fast-growing Shorts channel.\n\nYour job is to write a short description that:\n1. Hooks viewers with 1–2 emotionally engaging sentences summarizing the insight or theme of the clip\n2. Ends with one line that tells YouTube and viewers what the channel is about: “On this channel, we explore life, work, and leadership in the age of AI.”\n3. Adds 3–5 high-traffic hashtags related to the clip, placed on a new line at the bottom\n\n📌 FORMAT (follow exactly):\n[Insight summary — 1–2 sentences]  \n[“On this channel...” sentence]  \n[Hashtags line with 3–5 hashtags]\n\n📚 STYLE GUIDE:\n- Mention the guest's name or title (e.g. GitHub CEO Thomas Dohmke) if available\n- Make it emotionally grounded, not clickbaity\n- Use keywords like: AI, tech, productivity, startup, mindset, learning, coding, future of work\n- Avoid sounding robotic or generic\n\nAlways start the description with: \n\"Watch the interviews here: https://www.youtube.com/@SiliconValleyGirl\"\n"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 2,
+            "position": [
+                832,
+                768
+            ],
+            "id": "6cb5660a-e51d-42dd-8043-292db3d3d730",
+            "name": "AI Agent1"
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "gpt-4.1-mini"
+                },
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                848,
+                992
+            ],
+            "id": "792f40be-2d8a-4ba9-9b66-8b4e08f92a20",
+            "name": "OpenAI Chat Model1",
+            "credentials": {
+                "openAiApi": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_OPENAI_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "content": "Step 5: Publishing Shorts to Youtube",
+                "height": 192,
+                "width": 1828,
+                "color": 3
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "typeVersion": 1,
+            "position": [
+                -496,
+                1104
+            ],
+            "id": "5d5c21cf-3360-4b48-a613-4aaba06d117e",
+            "name": "Sticky Note5"
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 734120859,
+                    "mode": "list",
+                    "cachedResultName": "Sheet2",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=734120859"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "shortform_links": "={{ $('Log Shorts').item.json.shortform_links }}",
+                        "id": "={{ $('Log Shorts').item.json.id }}",
+                        "instagram_caption": "={{ $('Log Shorts').item.json.instagram_caption }}",
+                        "tiktok_caption": "={{ $('Log Shorts').item.json.tiktok_caption }}",
+                        "linkedin_caption": "={{ $('Log Shorts').item.json.linkedin_caption }}",
+                        "youtube_caption": "={{ $('Log Shorts').item.json.youtube_caption }}",
+                        "transcript": "={{ $('Log Shorts').item.json.transcript }}",
+                        "posting_status": "pending",
+                        "titles": "={{ $('title generation').item.json.titles }}",
+                        "descriptions": "={{ $json.output }}"
+                    },
+                    "matchingColumns": [
+                        "shortform_links"
+                    ],
+                    "schema": [
+                        {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "shortform_links",
+                            "displayName": "shortform_links",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "tiktok_caption",
+                            "displayName": "tiktok_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "instagram_caption",
+                            "displayName": "instagram_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "youtube_caption",
+                            "displayName": "youtube_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "linkedin_caption",
+                            "displayName": "linkedin_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "transcript",
+                            "displayName": "transcript",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "titles",
+                            "displayName": "titles",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "descriptions",
+                            "displayName": "descriptions",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "uploadId",
+                            "displayName": "uploadId",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "posting_status",
+                            "displayName": "posting_status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                1184,
+                768
+            ],
+            "id": "cfc8f9b4-32bd-4817-961e-47b57e727fde",
+            "name": "description generation",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 734120859,
+                    "mode": "list",
+                    "cachedResultName": "Sheet2",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=734120859"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "shortform_links": "={{ $('Log Shorts').item.json.shortform_links }}",
+                        "id": "={{ $('Log Shorts').item.json.id }}",
+                        "instagram_caption": "={{ $('Log Shorts').item.json.instagram_caption }}",
+                        "tiktok_caption": "={{ $('Log Shorts').item.json.tiktok_caption }}",
+                        "linkedin_caption": "={{ $('Log Shorts').item.json.linkedin_caption }}",
+                        "youtube_caption": "={{ $('Log Shorts').item.json.youtube_caption }}",
+                        "transcript": "={{ $('Log Shorts').item.json.transcript }}",
+                        "posting_status": "pending",
+                        "titles": "={{ $json.output }}"
+                    },
+                    "matchingColumns": [
+                        "shortform_links"
+                    ],
+                    "schema": [
+                        {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "shortform_links",
+                            "displayName": "shortform_links",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "tiktok_caption",
+                            "displayName": "tiktok_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "instagram_caption",
+                            "displayName": "instagram_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "youtube_caption",
+                            "displayName": "youtube_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "linkedin_caption",
+                            "displayName": "linkedin_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "transcript",
+                            "displayName": "transcript",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "titles",
+                            "displayName": "titles",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "descriptions",
+                            "displayName": "descriptions",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "uploadId",
+                            "displayName": "uploadId",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "posting_status",
+                            "displayName": "posting_status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                608,
+                768
+            ],
+            "id": "da6eef00-9175-497d-994d-37b90f06ee15",
+            "name": "title generation",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "string": [
+                        {
+                            "value1": "={{$json[\"posting_status\"]}}",
+                            "value2": "pending"
+                        }
+                    ]
+                }
+            },
+            "id": "25b19933-4512-4024-bd57-d10348f47cf7",
+            "name": "IF pending",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                448,
+                1152
+            ]
+        },
+        {
+            "parameters": {
+                "maxItems": 5
+            },
+            "type": "n8n-nodes-base.limit",
+            "typeVersion": 1,
+            "position": [
+                720,
+                1136
+            ],
+            "id": "eb5e7905-372a-4ddf-8ead-c7053c3b2dfa",
+            "name": "Limit"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                992,
+                1152
+            ],
+            "id": "af5fec6e-91af-4f7b-90e2-560505e3a19e",
+            "name": "Loop Over Items"
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.shortform_links }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1120,
+                1376
+            ],
+            "id": "f37bb1d8-ea53-4790-82cf-c491bdb38a35",
+            "name": "HTTP Request"
+        },
+        {
+            "parameters": {
+                "resource": "video",
+                "operation": "upload",
+                "title": "={{ $json.titles }}",
+                "regionCode": "CA",
+                "categoryId": "=22",
+                "options": {
+                    "description": "={{ $json.descriptions }}"
+                }
+            },
+            "type": "n8n-nodes-base.youTube",
+            "typeVersion": 1,
+            "position": [
+                1216,
+                1152
+            ],
+            "id": "869c30ec-4410-493c-93cb-0e630bb05b36",
+            "name": "Upload a video",
+            "credentials": {
+                "youTubeOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_YOUTUBE_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "f16a850e-d8c7-4f91-b0c8-7675009b120c",
+                            "leftValue": "={{ $json.uploadId }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "empty",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                1440,
+                1152
+            ],
+            "id": "c758ce53-4466-4c64-81cc-d49698aca754",
+            "name": "IF upload succeeded?"
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 734120859,
+                    "mode": "list",
+                    "cachedResultName": "Sheet2",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=734120859"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "posting_status": "posted",
+                        "id": "={{ $('Get row(s) in sheet1').item.json.id }}",
+                        "uploadId": "={{ $json.uploadId }}"
+                    },
+                    "matchingColumns": [
+                        "id"
+                    ],
+                    "schema": [
+                        {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "shortform_links",
+                            "displayName": "shortform_links",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "tiktok_caption",
+                            "displayName": "tiktok_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "instagram_caption",
+                            "displayName": "instagram_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "youtube_caption",
+                            "displayName": "youtube_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "linkedin_caption",
+                            "displayName": "linkedin_caption",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "transcript",
+                            "displayName": "transcript",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "titles",
+                            "displayName": "titles",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "descriptions",
+                            "displayName": "descriptions",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "uploadId",
+                            "displayName": "uploadId",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "posting_status",
+                            "displayName": "posting_status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Producer’s title",
+                            "displayName": "Producer’s title",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                1712,
+                1168
+            ],
+            "id": "f5c14925-55cf-4689-babc-d8ec04238b4f",
+            "name": "Update row in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 16,
+                            "triggerAtMinute": 50
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                -48,
+                1152
+            ],
+            "id": "d7f3bebf-d551-4c63-9de5-4cd197365588",
+            "name": "Schedule Trigger1"
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "SHEET_ID_PLACEHOLDER",
+                    "mode": "list",
+                    "cachedResultName": "Video clipping",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 734120859,
+                    "mode": "list",
+                    "cachedResultName": "Sheet2",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/SHEET_ID_PLACEHOLDER/edit#gid=734120859"
+                },
+                "filtersUI": {
+                    "values": [
+                        {
+                            "lookupColumn": "posting_status",
+                            "lookupValue": "pending"
+                        }
+                    ]
+                },
+                "options": {
+                    "returnFirstMatch": false
+                }
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.6,
+            "position": [
+                224,
+                1152
+            ],
+            "id": "3dd17766-bb5a-4862-9d48-adb689f3861a",
+            "name": "Get row(s) in sheet1",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "CREDENTIAL_ID_PLACEHOLDER",
+                    "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+                }
+            }
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Get row(s) in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get row(s) in sheet": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze Longform",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analyze Longform": {
+            "main": [
+                [
+                    {
+                        "node": "Wait",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Wait": {
+            "main": [
+                [
+                    {
+                        "node": "Get Status",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Status": {
+            "main": [
+                [
+                    {
+                        "node": "Ready",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Ready": {
+            "main": [
+                [
+                    {
+                        "node": "Get Shorts Details",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Wait",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Shorts Details": {
+            "main": [
+                [
+                    {
+                        "node": "Export Shorts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Export Shorts": {
+            "main": [
+                [
+                    {
+                        "node": "Wait1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Wait1": {
+            "main": [
+                [
+                    {
+                        "node": "Get Shorts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Shorts": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Update longform Status",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Wait1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update longform Status": {
+            "main": [
+                [
+                    {
+                        "node": "Log Shorts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log Shorts": {
+            "main": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "title generation",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model1": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent1": {
+            "main": [
+                [
+                    {
+                        "node": "description generation",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "description generation": {
+            "main": [
+                []
+            ]
+        },
+        "title generation": {
+            "main": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF pending": {
+            "main": [
+                [
+                    {
+                        "node": "Limit",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Limit": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Over Items": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Upload a video",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upload a video": {
+            "main": [
+                [
+                    {
+                        "node": "IF upload succeeded?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF upload succeeded?": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "Update row in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update row in sheet": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Schedule Trigger1": {
+            "main": [
+                [
+                    {
+                        "node": "Get row(s) in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get row(s) in sheet1": {
+            "main": [
+                [
+                    {
+                        "node": "IF pending",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "VERSION_ID_PLACEHOLDER",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "INSTANCE_ID_PLACEHOLDER"
+    },
+    "id": "WORKFLOW_ID_PLACEHOLDER",
+    "tags": []
+}
