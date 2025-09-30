@@ -11,7 +11,7 @@ This repository contains my **n8n automation workflow** for repurposing long-for
 - 📝 Logs results back into Google Sheets  
 
 ## 📂 Files
-- `content_factory_workflow.json` → n8n workflow export (import directly into your n8n instance)  
+- `content_factory.json` → n8n workflow export (import directly into your n8n instance)  
 
 ## 🚀 How to Use
 1. Clone this repo or download the JSON file  
