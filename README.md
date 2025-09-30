@@ -1,6 +1,10 @@
 # 🎬 AI Content Factory Workflow
 
-This repository contains my **n8n automation workflow** for repurposing long-form YouTube videos into Shorts, generating titles & descriptions with AI, and publishing them automatically.  
+This repository contains my **n8n automation workflow** for repurposing long-form YouTube videos into Shorts, generating titles & descriptions with AI, and publishing them automatically. 
+
+## 🏆 Case Study
+This project was originally built for a YouTuber with 1M+ subscribers.  
+👉 [Read the full case study here](CASE_STUDY.md)
 
 ## 🔧 Features
 - ⏰ Scheduled trigger for workflow automation  
